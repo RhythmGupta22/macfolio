@@ -1,3 +1,4 @@
+// 📁 lib/app/routes/app_pages.dart
 import 'package:get/get.dart';
 
 import '../modules/about_me/bindings/about_me_binding.dart';
@@ -32,71 +33,71 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.HOME;
+  static const INITIAL = Routes.LOGIN;
 
   static final routes = [
     GetPage(
-      name: _Paths.SPLASH,
+      name: Routes.SPLASH,
       page: () => const SplashView(),
       binding: SplashBinding(),
     ),
     GetPage(
-      name: _Paths.LOGIN,
+      name: Routes.LOGIN,
       page: () => const LoginView(),
       binding: LoginBinding(),
     ),
     GetPage(
-      name: _Paths.DESKTOP,
+      name: Routes.DESKTOP,
       page: () => const DesktopView(),
       binding: DesktopBinding(),
     ),
     GetPage(
-      name: _Paths.FINDER,
+      name: Routes.FINDER,
       page: () => const FinderView(),
       binding: FinderBinding(),
     ),
     GetPage(
-      name: _Paths.ALL_APPS,
+      name: Routes.ALL_APPS,
       page: () => const AllAppsView(),
       binding: AllAppsBinding(),
     ),
     GetPage(
-      name: _Paths.CONTACTS,
+      name: Routes.CONTACTS,
       page: () => const ContactsView(),
       binding: ContactsBinding(),
     ),
     GetPage(
-      name: _Paths.MUSIC,
+      name: Routes.MUSIC,
       page: () => const MusicView(),
       binding: MusicBinding(),
     ),
     GetPage(
-      name: _Paths.CALCULATOR,
+      name: Routes.CALCULATOR,
       page: () => const CalculatorView(),
       binding: CalculatorBinding(),
     ),
     GetPage(
-      name: _Paths.PHOTOS,
+      name: Routes.PHOTOS,
       page: () => const PhotosView(),
       binding: PhotosBinding(),
     ),
     GetPage(
-      name: _Paths.SKILLS,
+      name: Routes.SKILLS,
       page: () => const SkillsView(),
       binding: SkillsBinding(),
     ),
     GetPage(
-      name: _Paths.TERMINAL,
+      name: Routes.TERMINAL,
       page: () => const TerminalView(),
       binding: TerminalBinding(),
     ),
     GetPage(
-      name: _Paths.ABOUT_ME,
+      name: Routes.ABOUT_ME,
       page: () => const AboutMeView(),
       binding: AboutMeBinding(),
     ),
     GetPage(
-      name: _Paths.TRASH,
+      name: Routes.TRASH,
       page: () => const TrashView(),
       binding: TrashBinding(),
     ),
