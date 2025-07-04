@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import '../../../routes/app_pages.dart';
+import '../../../widgets/common/menu_bar.dart'; // Import menu bar
 import '../controllers/login_controller.dart';
 
 class LoginView extends StatefulWidget {
@@ -46,6 +47,19 @@ class _LoginViewState extends State<LoginView> {
               'assets/images/bg_wallpaper.jpg',
               fit: BoxFit.cover,
             ),
+
+            // ✅ Mac-style menu bar
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: MacMenuBar(
+                leadingTitle: '',
+                backgroundColor: Colors.transparent,
+              ),
+            ),
+
+            // ⏰ Date & Time
             Positioned(
               top: 50,
               left: 0,
@@ -57,10 +71,11 @@ class _LoginViewState extends State<LoginView> {
                     style: const TextStyle(
                       fontFamily: 'SFPro',
                       color: Colors.white70,
+                      fontWeight: FontWeight.w800,
                       fontSize: 20,
                     ),
                   ),
-                  const SizedBox(height: 2), // Reduced spacing
+                  const SizedBox(height: 2),
                   Text(
                     _timeString,
                     style: const TextStyle(
@@ -69,12 +84,14 @@ class _LoginViewState extends State<LoginView> {
                       fontSize: 100,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -1,
-                      height: 0.95, // tighter line height
+                      height: 0.95,
                     ),
                   ),
                 ],
               ),
             ),
+
+            // 👤 User Avatar & Name
             Positioned(
               bottom: 50,
               left: 0,
@@ -106,18 +123,6 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                 ],
-              ),
-            ),
-            Positioned(
-              top: 5,
-              right: 5,
-              child: Row(
-                children:  [
-                  Image(image: AssetImage('assets/icons/wifi.png')),
-                  SizedBox(width: 5,),
-                  Image(image: AssetImage('assets/icons/battery.png')),
-                  SizedBox(width: 5,),
-                  Image(image: AssetImage('assets/icons/controlcentre.png')),],
               ),
             ),
           ],
