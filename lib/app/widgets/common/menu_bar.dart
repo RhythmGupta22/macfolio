@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class MacMenuBar extends StatefulWidget {
+  final Icon leadIcon;
   final String leadingTitle;
   final Color backgroundColor;
 
   const MacMenuBar({
     super.key,
+    this.leadIcon = const Icon(Icons.apple, color: Colors.white, size: 18,),
     this.leadingTitle = 'Finder',
     this.backgroundColor = const Color.fromRGBO(40, 40, 40, 0.6),
   });
@@ -51,10 +53,12 @@ class _MacMenuBarState extends State<MacMenuBar> {
   Widget build(BuildContext context) {
     return Container(
       color: widget.backgroundColor,
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 26,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Row(
         children: [
+          widget.leadIcon,
+          SizedBox(width: 10),
           Text(
             widget.leadingTitle,
             style: const TextStyle(
