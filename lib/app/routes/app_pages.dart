@@ -1,5 +1,6 @@
-// 📁 lib/app/routes/app_pages.dart
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:macfolio/app/routes/transitions/custom_transitions.dart';
 
 import '../modules/about_me/bindings/about_me_binding.dart';
 import '../modules/about_me/views/about_me_view.dart';
@@ -45,11 +46,15 @@ class AppPages {
       name: Routes.LOGIN,
       page: () => const LoginView(),
       binding: LoginBinding(),
+      customTransition: BlackFadeTransition(),
+      transitionDuration: Duration(milliseconds: 500),
     ),
     GetPage(
       name: Routes.DESKTOP,
       page: () => const DesktopView(),
       binding: DesktopBinding(),
+      customTransition: BlackFadeTransition(),
+      transitionDuration: Duration(milliseconds: 500),
     ),
     GetPage(
       name: Routes.FINDER,
