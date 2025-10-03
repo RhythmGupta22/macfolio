@@ -1,114 +1,178 @@
+// lib/widgets/common/dock.dart
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-class Dock extends StatelessWidget {
-  const Dock({super.key});
+class Dock extends StatefulWidget {
+  final void Function(String label)? onIconTap;
+  const Dock({super.key, this.onIconTap});
+
+  @override
+  State<Dock> createState() => _DockState();
+}
+
+class _DockState extends State<Dock> {
+  double? _mouseX; // Mouse X position within dock
+  bool _isDockHovered = false;
+  final icons = [
+    'Finder', 'All Apps', 'Contact Me', 'Music',
+    'Calculator', 'Photos', 'Skills', 'Terminal',
+    'About Me'
+  ];
+
+  // Icon layout constants
+  static const double iconWidth = 48.0;
+  static const double iconSpacing = 9.0;
+  static const double maxScale = 0.4; // 1.6x (lowered)
+  static const double sigma = 30.0; // Spread of wave
+  static const double iconBaseHeight = 50.0; // base icon height
+  static const double dockScale = 1.07; // Slightly increase dock size when hovered
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Reference width for full-size dock
-    const double referenceWidth = 1300;
-    final double scaleFactor = (screenWidth / referenceWidth).clamp(0.3, 1.0);
-
-    final List<String> dockIcons = [
-      'Finder',
-      'All Apps',
-      'Contact Me',
-      'Music',
-      'Calculator',
-      'Photos',
-      'Skills',
-      'Terminal',
-      'About Me',
-    ];
-
-    return Transform.scale(
-      scale: scaleFactor,
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color.fromRGBO(40, 40, 40, 0.6),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color.fromRGBO(72, 72, 72, 1)),
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              ...dockIcons.map((iconName) => _HoverableIcon(iconName)).toList(),
-
-              // Divider
-              Container(
-                height: 50,
-                width: 1,
-                color: const Color.fromRGBO(104, 104, 104, 1),
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-
-              _HoverableIcon('Trash'),
-            ],
+    return MouseRegion(
+      onHover: (event) {
+        setState(() {
+          _mouseX = event.localPosition.dx;
+          _isDockHovered = true;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          _mouseX = null;
+          _isDockHovered = false;
+        });
+      },
+      child: AnimatedScale(
+        scale: _isDockHovered ? dockScale : 1.0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.fastOutSlowIn,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(40, 40, 40, 0.6),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color.fromRGBO(72, 72, 72, 1)),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ...icons.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final name = entry.value;
+                  final center = index * (iconWidth + iconSpacing) + iconWidth / 2 + iconSpacing;
+                  final scale = _mouseX == null
+                    ? 1.0
+                    : 1.0 + maxScale * math.exp(-math.pow((_mouseX! - center), 2) / (2 * math.pow(sigma, 2)));
+                  // Pop upward so base stays anchored (full height difference)
+                  final pop = _mouseX == null
+                    ? 0.0
+                    : iconBaseHeight * (scale - 1.0);
+                  return _WaveIcon(
+                    name,
+                    scale: scale,
+                    pop: pop,
+                    onTap: () => widget.onIconTap?.call(name),
+                  );
+                }),
+                Container(
+                  width: 1, height: 40,
+                  color: const Color.fromRGBO(104, 104, 104, 1),
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                // Trash icon
+                (() {
+                  final index = icons.length;
+                  final center = index * (iconWidth + iconSpacing) + iconWidth / 2 + iconSpacing;
+                  final scale = _mouseX == null
+                    ? 1.0
+                    : 1.0 + maxScale * math.exp(-math.pow((_mouseX! - center), 2) / (2 * math.pow(sigma, 2)));
+                  final pop = _mouseX == null
+                    ? 0.0
+                    : iconBaseHeight * (scale - 1.0);
+                  return _WaveIcon(
+                    'Trash',
+                    scale: scale,
+                    pop: pop,
+                    onTap: () => widget.onIconTap?.call('Trash'),
+                  );
+                })(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-class _HoverableIcon extends StatefulWidget {
+
+class _WaveIcon extends StatefulWidget {
   final String assetName;
-
-  const _HoverableIcon(this.assetName);
-
+  final VoidCallback? onTap;
+  final double scale;
+  final double pop;
+  const _WaveIcon(this.assetName, {this.onTap, required this.scale, required this.pop});
   @override
-  State<_HoverableIcon> createState() => _HoverableIconState();
+  State<_WaveIcon> createState() => _WaveIconState();
 }
 
-class _HoverableIconState extends State<_HoverableIcon> {
+class _WaveIconState extends State<_WaveIcon> {
   bool _isHovered = false;
-
   @override
   Widget build(BuildContext context) {
+    final double scale = widget.scale;
+    final double baseHeight = 48.0;
+    // Calculate upward translation so base stays anchored after scaling
+    final double pop = (baseHeight * (scale - 1.0)) / scale;
+    // Tooltip offset: always above the scaled icon
+    final double tooltipOffset = -baseHeight * scale - 4; // 10px gap above icon
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          // 👆 Tooltip shown above
-          if (_isHovered)
-            Positioned(
-              top: -43,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color.fromRGBO(40, 40, 40, 0.9),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  widget.assetName,
-                  style: const TextStyle(
-                    fontFamily: 'SFPro',
-                    fontSize: 16,
-                    color: Colors.white,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            if (_isHovered)
+              Positioned(
+                top: tooltipOffset,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(40, 40, 40, 0.9),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Text(
+                    widget.assetName,
+                    style: const TextStyle(
+                      fontFamily: 'SFPro',
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.fastOutSlowIn,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              child: Transform(
+                alignment: Alignment.bottomCenter,
+                transform: Matrix4.identity()
+                  ..scale(scale)
+                  ..translate(0.0, -pop),
+                child: Image.asset(
+                  'assets/icons/${widget.assetName}.png',
+                  height: baseHeight,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
-
-          // 📦 Icon with hover animation
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            transform: Matrix4.translationValues(0, _isHovered ? -8 : 0, 0),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            child: Image.asset(
-              'assets/icons/${widget.assetName}.png',
-              scale: 1.8,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
