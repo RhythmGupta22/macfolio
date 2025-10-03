@@ -11,7 +11,7 @@ class SplineViewer extends StatelessWidget {
   const SplineViewer({
     super.key,
     required this.url,
-    this.scale = 1.5, // 👈 Default zoom level (adjust as needed)
+    this.scale = 1.2, // 👈 Default zoom level (adjust as needed)
   });
 
   @override

@@ -1,22 +1,22 @@
+// lib/app/widgets/common/desktop_icon.dart
 import 'package:flutter/material.dart';
-import 'draggable_window.dart';
 
-enum DesktopIconType { folder, file }
+enum DesktopIconType { file, folder }
 
 class DesktopIcon extends StatefulWidget {
-  final IconData icon; // Can still use this as a fallback
+  final IconData icon;
   final String label;
-  final Widget? windowContent;
-  final Offset initialPosition;
   final DesktopIconType type;
+  final Offset initialPosition;
+  final VoidCallback? onDoubleTap;
 
   const DesktopIcon({
     super.key,
     required this.icon,
     required this.label,
-    this.windowContent,
+    required this.type,
     this.initialPosition = const Offset(80, 80),
-    this.type = DesktopIconType.folder,
+    this.onDoubleTap,
   });
 
   @override
@@ -25,7 +25,7 @@ class DesktopIcon extends StatefulWidget {
 
 class _DesktopIconState extends State<DesktopIcon> {
   late Offset _position;
-  bool _showWindow = false;
+  bool _hover = false;
 
   @override
   void initState() {
@@ -33,63 +33,26 @@ class _DesktopIconState extends State<DesktopIcon> {
     _position = widget.initialPosition;
   }
 
-  String _getIconAsset() {
-    switch (widget.type) {
-      case DesktopIconType.folder:
-        return 'assets/icons/folder.png';
-      case DesktopIconType.file:
-        return 'assets/icons/Document.png';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: _position.dx,
-          top: _position.dy,
-          child: GestureDetector(
-            onPanUpdate: (details) {
-              setState(() {
-                _position += details.delta;
-              });
-            },
-            onDoubleTap: () {
-              if (widget.windowContent != null) {
-                setState(() {
-                  _showWindow = true;
-                });
-              }
-            },
-            child: Column(
-              children: [
-                Image.asset(_getIconAsset(), scale: 6),
-                const SizedBox(height: 4),
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontFamily: 'SFPro',
-                  ),
-                )
-              ],
-            ),
+    return Stack(children: [
+      Positioned(
+        left: _position.dx,
+        top: _position.dy,
+        child: GestureDetector(
+          onPanUpdate: (d) => setState(() => _position += d.delta),
+          onDoubleTap: widget.onDoubleTap,
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hover = true),
+            onExit: (_) => setState(() => _hover = false),
+            child: Column(children: [
+              Icon(widget.icon, size: 48, color: _hover ? Colors.white : Colors.grey[200]),
+              const SizedBox(height: 4),
+              Text(widget.label, style: const TextStyle(color: Colors.white)),
+            ]),
           ),
         ),
-
-        if (_showWindow && widget.windowContent != null)
-          DraggableWindow(
-            title: widget.label,
-            content: widget.windowContent!,
-            onClose: () {
-              setState(() {
-                _showWindow = false;
-              });
-            },
-          ),
-      ],
-    );
+      ),
+    ]);
   }
 }
