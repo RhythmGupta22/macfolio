@@ -11,9 +11,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetCupertinoApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Macfolio',
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
     );
