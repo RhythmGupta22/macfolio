@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class Dock extends StatefulWidget {
   final void Function(String label)? onIconTap;
-  const Dock({super.key, this.onIconTap});
+  final Map<String, bool>? minimizedStates;
+  const Dock({super.key, this.onIconTap, this.minimizedStates});
 
   @override
   State<Dock> createState() => _DockState();
@@ -21,11 +22,11 @@ class _DockState extends State<Dock> {
 
   // Icon layout constants
   static const double iconWidth = 48.0;
-  static const double iconSpacing = 9.0;
-  static const double maxScale = 0.4; // 1.6x (lowered)
+  static const double iconSpacing = 8.0;
+  static const double maxScale = 0.6; // 1.6x (lowered)
   static const double sigma = 30.0; // Spread of wave
-  static const double iconBaseHeight = 50.0; // base icon height
-  static const double dockScale = 1.07; // Slightly increase dock size when hovered
+  static const double iconBaseHeight = 48.0; // base icon height
+  static const double dockScale = 1.08; // Slightly increase dock size when hovered
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class _DockState extends State<Dock> {
       },
       child: AnimatedScale(
         scale: _isDockHovered ? dockScale : 1.0,
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.fastOutSlowIn,
         child: Container(
           margin: const EdgeInsets.only(bottom: 20),
@@ -65,15 +66,16 @@ class _DockState extends State<Dock> {
                   final scale = _mouseX == null
                     ? 1.0
                     : 1.0 + maxScale * math.exp(-math.pow((_mouseX! - center), 2) / (2 * math.pow(sigma, 2)));
-                  // Pop upward so base stays anchored (full height difference)
                   final pop = _mouseX == null
                     ? 0.0
                     : iconBaseHeight * (scale - 1.0);
+                  final isMinimized = widget.minimizedStates != null && (widget.minimizedStates![name] ?? false);
                   return _WaveIcon(
                     name,
                     scale: scale,
                     pop: pop,
                     onTap: () => widget.onIconTap?.call(name),
+                    isMinimized: isMinimized,
                   );
                 }),
                 Container(
@@ -112,7 +114,8 @@ class _WaveIcon extends StatefulWidget {
   final VoidCallback? onTap;
   final double scale;
   final double pop;
-  const _WaveIcon(this.assetName, {this.onTap, required this.scale, required this.pop});
+  final bool isMinimized;
+  const _WaveIcon(this.assetName, {this.onTap, required this.scale, required this.pop, this.isMinimized = false});
   @override
   State<_WaveIcon> createState() => _WaveIconState();
 }
@@ -123,10 +126,12 @@ class _WaveIconState extends State<_WaveIcon> {
   Widget build(BuildContext context) {
     final double scale = widget.scale;
     final double baseHeight = 48.0;
-    // Calculate upward translation so base stays anchored after scaling
     final double pop = (baseHeight * (scale - 1.0)) / scale;
-    // Tooltip offset: always above the scaled icon
-    final double tooltipOffset = -baseHeight * scale - 4; // 10px gap above icon
+    final double tooltipOffset = -baseHeight * scale - 12;
+    final double dotSize = 6.0 * scale.clamp(1.0, 1.6); // Dot scales with magnification
+    final double dotBaseTop = -baseHeight * scale / 2 - 4; // Default dot position
+    final double dotTooltipTop = tooltipOffset - dotSize - 4; // Dot above tooltip
+    final double dotTop = _isHovered ? dotTooltipTop : dotBaseTop;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -143,13 +148,13 @@ class _WaveIconState extends State<_WaveIcon> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color.fromRGBO(40, 40, 40, 0.9),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     widget.assetName,
                     style: const TextStyle(
                       fontFamily: 'SFPro',
-                      fontSize: 14,
+                      fontSize: 16,
                       color: Colors.white,
                     ),
                   ),
@@ -171,6 +176,29 @@ class _WaveIconState extends State<_WaveIcon> {
                 ),
               ),
             ),
+            if (widget.isMinimized)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutExpo,
+                top: dotTop,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutExpo,
+                  width: dotSize,
+                  height: dotSize,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 2,
+                        spreadRadius: 0.5,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
